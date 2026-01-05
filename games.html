@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单词游戏 - 初中英语单词复习</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // 1. 用你的【天空蓝】替换系统默认的蓝色 (主按钮/标题)
+                        blue: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#ABD7FB', // 你的颜色 (浅一点)
+                            500: '#ABD7FB', // 你的颜色 (主色)
+                            600: '#F98C53', // 悬停时变珊瑚橘 (增加互动感)
+                        },
+                        // 2. 用你的【珊瑚橘】替换系统默认的橙色 (进度条/强调)
+                        orange: {
+                            500: '#F98C53',
+                        },
+                        // 3. 用你的【抹茶绿】替换系统默认的绿色 (正确/成功)
+                        green: {
+                            100: '#f0fdf4',
+                            500: '#D2E0AA',
+                            600: '#b8d688', // 稍微深一点用于悬停
+                        },
+                        // 4. 用你的【蜜桃粉】替换系统默认的紫色 (游戏/翻牌)
+                        purple: {
+                            200: '#ffe4d6', 
+                            500: '#FCCEB4', 
+                            600: '#F98C53', // 悬停变橘色
+                        },
+                        // 5. 用你的【奶油白】替换系统默认的灰色背景
+                        gray: {
+                            50: '#F9F2EF', // 你的背景色
+                            100: '#F9F2EF',
+                            200: '#eef2f6',
+                            900: '#4a4a4a', // 字体颜色保持深灰，保证阅读清晰
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            /* 使用你的 #F9F2EF (奶油白) 做背景，稍微加一点点渐变让它更有质感 */
+            background: linear-gradient(135deg, #F9F2EF 0%, #fff0e6 100%);
+            min-height: 100vh;
+            color: #4a4a4a; /* 字体深灰色，搭配柔和背景 */
+        }
+        
+        /* 标题文字渐变：使用你的 珊瑚橘 -> 天空蓝 */
+        .gradient-text {
+            background: linear-gradient(135deg, #F98C53, #ABD7FB);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* 修复按钮文字颜色：因为你的主色较浅，按钮文字改成深色会更清晰 */
+        .btn-text-fix {
+            color: #4a4a4a !important; 
+            font-weight: bold;
+        }
+
+        /* 游戏样式 */
+        .game-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .game-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        .floating-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .game-board {
+            /* 使用你的配色：天空蓝 -> 蜜桃粉 渐变 */
+            background: linear-gradient(135deg, #ABD7FB 0%, #FCCEB4 100%);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .word-tile {
+            background: white;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .word-tile:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        .word-tile.selected {
+            background: #F98C53; /* 珊瑚橘 */
+            color: white;
+            transform: scale(0.95);
+        }
+        .word-tile.matched {
+            background: #D2E0AA; /* 抹茶绿 */
+            color: white;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .memory-card {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ABD7FB 0%, #FCCEB4 100%);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+            text-align: center;
+            position: relative;
+        }
+        .memory-card:hover {
+            transform: scale(1.05);
+        }
+        .memory-card.flipped {
+            background: white;
+            color: #333;
+            border: 2px solid #ABD7FB;
+        }
+        .memory-card.matched {
+            background: #D2E0AA;
+            color: white;
+            pointer-events: none;
+        }
+        .puzzle-piece {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px;
+            margin: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: bold;
+        }
+        .puzzle-piece:hover {
+            border-color: #ABD7FB;
+            transform: scale(1.05);
+        }
+        .puzzle-piece.correct {
+            background: #f0fdf4;
+            border-color: #D2E0AA;
+        }
+        .game-stats {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .particle-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            z-index: 1000;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-orange-500 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">E</span>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-900" style="font-family: 'Noto Serif SC', serif;">初中英语单词复习</h1>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="index.html" class="text-gray-600 hover:text-blue-600 transition-colors">单词学习</a>
+                    <a href="practice.html" class="text-gray-600 hover:text-blue-600 transition-colors">练习测试</a>
+                    <a href="games.html" class="text-blue-600 font-medium border-b-2 border-blue-600 pb-1">单词游戏</a>
+                    <a href="progress.html" class="text-gray-600 hover:text-blue-600 transition-colors">学习进度</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-blue-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="mobile-menu" class="fixed inset-0 z-40 hidden bg-white/95 backdrop-blur-md">
+        <div class="flex flex-col items-center justify-center h-full space-y-8">
+            <a href="index.html" class="text-2xl font-medium text-gray-600">单词学习</a>
+            <a href="practice.html" class="text-2xl font-medium text-gray-600">练习测试</a>
+            <a href="games.html" class="text-2xl font-medium text-blue-600">单词游戏</a>
+            <a href="progress.html" class="text-2xl font-medium text-gray-600">学习进度</a>
+        </div>
+    </div>
+
+    <main class="pt-16">
+        <section class="py-16 bg-gradient-to-r from-purple-600 to-pink-600">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 floating-animation" style="font-family: 'Noto Serif SC', serif;">
+                    趣味单词游戏
+                </h2>
+                <p class="text-xl text-purple-100 mb-8 max-w-3xl mx-auto">
+                    通过游戏化学习，让单词记忆变得更有趣。多种游戏模式，挑战你的词汇量和反应速度！
+                </p>
+            </div>
+        </section>
+
+        <section id="game-selection" class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h3 class="text-3xl font-bold text-center text-gray-900 mb-12 gradient-text" style="font-family: 'Noto Serif SC', serif;">
+                    选择游戏模式
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="game-card bg-white p-6 rounded-xl shadow-lg border-2 border-transparent hover:border-blue-500" data-game="matching">
+                        <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <span class="text-3xl">🧩</span>
+                        </div>
+                        <h4 class="text-xl font-bold text-gray-900 mb-2 text-center">单词消消乐</h4>
+                        <p class="text-gray-600 text-center mb-4">拖拽匹配单词和释义，消除所有卡片</p>
+                        <div class="text-center">
+                            <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                记忆力挑战
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="game-card bg-white p-6 rounded-xl shadow-lg border-2 border-transparent hover:border-green-500" data-game="puzzle">
+                        <div class="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <span class="text-3xl">📝</span>
+                        </div>
+                        <h4 class="text-xl font-bold text-gray-900 mb-2 text-center">单词拼图</h4>
+                        <p class="text-gray-600 text-center mb-4">将打乱的字母重新排列成正确的单词</p>
+                        <div class="text-center">
+                            <span class="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                                拼写训练
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="game-card bg-white p-6 rounded-xl shadow-lg border-2 border-transparent hover:border-orange-500" data-game="memory">
+                        <div class="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <span class="text-3xl">🧠</span>
+                        </div>
+                        <h4 class="text-xl font-bold text-gray-900 mb-2 text-center">记忆翻牌</h4>
+                        <p class="text-gray-600 text-center mb-4">翻转卡片匹配单词和释义，考验记忆力</p>
+                        <div class="text-center">
+                            <span class="inline-block bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                                记忆配对
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="game-card bg-white p-6 rounded-xl shadow-lg border-2 border-transparent hover:border-purple-500" data-game="chain">
+                        <div class="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <span class="text-3xl">🔗</span>
+                        </div>
+                        <h4 class="text-xl font-bold text-gray-900 mb-2 text-center">单词接龙</h4>
+                        <p class="text-gray-600 text-center mb-4">根据最后一个字母连接下一个单词</p>
+                        <div class="text-center">
+                            <span class="inline-block bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
+                                反应速度
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="game-settings" class="py-16 bg-gray-50 hidden">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white p-8 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center" id="settings-title">游戏设置</h3>
+                    
+                    <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">选择教材</label>
+                    <select id="game-book-selector" class="w-full p-3 border-2 border-purple-200 rounded-lg text-gray-700 focus:outline-none focus:border-purple-500 bg-white">
+                        <option value="七年级上册">七年级上册</option>
+                        <option value="七年级下册">七年级下册</option>
+                        <option value="八年级上册">八年级上册</option>
+                        <option value="八年级下册">八年级下册</option>
+                        <option value="九年级上册" selected>九年级上册</option>
+                        <option value="九年级下册">九年级下册</option>
+                    </select>
+                    </div>
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">选择单元</label>
+                            <div class="grid grid-cols-4 gap-2" id="game-unit-selector">
+                                </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">游戏难度</label>
+                            <div class="flex space-x-4">
+                                <button class="difficulty-btn bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors" data-difficulty="easy">简单</button>
+                                <button class="difficulty-btn bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors" data-difficulty="medium">中等</button>
+                                <button class="difficulty-btn bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors" data-difficulty="hard">困难</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 text-center">
+                        <button id="start-game-btn" class="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-8 py-3 rounded-lg font-medium hover:from-purple-600 hover:to-pink-700 transition-all transform hover:scale-105">
+                            开始游戏
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="matching-game" class="py-16 bg-white hidden">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="game-stats mb-6">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-6">
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">得分:</span>
+                                <span id="matching-score" class="text-lg font-bold text-blue-600 ml-2">0</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">匹配:</span>
+                                <span id="matching-pairs" class="text-lg font-bold text-green-600 ml-2">0/8</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">时间:</span>
+                                <span id="matching-time" class="text-lg font-bold text-orange-600 ml-2">00:00</span>
+                            </div>
+                        </div>
+                        <button id="pause-matching-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            暂停
+                        </button>
+                    </div>
+                </div>
+
+                <div class="game-board">
+                    <div class="particle-container" id="matching-particles"></div>
+                    <div id="matching-board" class="grid grid-cols-4 gap-4 min-h-96">
+                        </div>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <button id="shuffle-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium mr-4 transition-colors">
+                        重新洗牌
+                    </button>
+                    <button id="hint-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                        提示 (3)
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="puzzle-game" class="py-16 bg-white hidden">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="game-stats mb-6">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-6">
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">得分:</span>
+                                <span id="puzzle-score" class="text-lg font-bold text-blue-600 ml-2">0</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">进度:</span>
+                                <span id="puzzle-progress" class="text-lg font-bold text-green-600 ml-2">1/10</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">时间:</span>
+                                <span id="puzzle-time" class="text-lg font-bold text-orange-600 ml-2">00:00</span>
+                            </div>
+                        </div>
+                        <button id="pause-puzzle-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            暂停
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-green-50 to-blue-50 p-8 rounded-xl shadow-lg">
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2" id="puzzle-word">golden</h3>
+                        <p class="text-gray-600" id="puzzle-hint">金的；金色的</p>
+                    </div>
+                    
+                    <div class="flex justify-center mb-6">
+                        <div id="puzzle-target" class="flex space-x-2">
+                            </div>
+                    </div>
+                    
+                    <div class="flex justify-center">
+                        <div id="puzzle-letters" class="flex flex-wrap justify-center gap-2">
+                            </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <button id="skip-puzzle-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-medium mr-4 transition-colors">
+                        跳过
+                    </button>
+                    <button id="check-puzzle-btn" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                        检查答案
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="memory-game" class="py-16 bg-white hidden">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="game-stats mb-6">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-6">
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">得分:</span>
+                                <span id="memory-score" class="text-lg font-bold text-blue-600 ml-2">0</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">翻牌:</span>
+                                <span id="memory-flips" class="text-lg font-bold text-orange-600 ml-2">0</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">时间:</span>
+                                <span id="memory-time" class="text-lg font-bold text-red-600 ml-2">00:00</span>
+                            </div>
+                        </div>
+                        <button id="pause-memory-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            暂停
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-orange-50 to-pink-50 p-8 rounded-xl shadow-lg">
+                    <div id="memory-board" class="grid grid-cols-4 gap-4 justify-items-center">
+                        </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="chain-game" class="py-16 bg-white hidden">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="game-stats mb-6">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-6">
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">得分:</span>
+                                <span id="chain-score" class="text-lg font-bold text-blue-600 ml-2">0</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">连击:</span>
+                                <span id="chain-combo" class="text-lg font-bold text-purple-600 ml-2">0</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">时间:</span>
+                                <span id="chain-time" class="text-lg font-bold text-red-600 ml-2">60</span>
+                            </div>
+                        </div>
+                        <button id="pause-chain-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            暂停
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-8 rounded-xl shadow-lg">
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">当前单词链</h3>
+                        <div id="chain-display" class="flex justify-center items-center space-x-2 mb-4">
+                            </div>
+                        <p class="text-gray-600">最后一个字母: <span id="last-letter" class="font-bold text-purple-600">n</span></p>
+                    </div>
+                    
+                    <div class="text-center mb-6">
+                        <input type="text" id="chain-input" class="w-full max-w-md p-4 border-2 border-purple-300 rounded-lg text-xl text-center focus:border-purple-500 focus:outline-none" placeholder="输入以 'n' 开头的单词">
+                        <button id="submit-chain-btn" class="w-full max-w-md mt-4 bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-lg font-medium transition-colors">
+                            提交
+                        </button>
+                    </div>
+                    
+                    <div class="text-center">
+                        <p class="text-sm text-gray-500">提示: 下一个单词必须以当前单词的最后一个字母开头</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="game-results" class="py-16 bg-gray-50 hidden">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                    <div class="text-6xl mb-6" id="result-emoji">🎉</div>
+                    <h3 class="text-3xl font-bold text-gray-900 mb-4" id="result-title">游戏完成！</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-blue-50 p-6 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600 mb-2" id="final-game-score">1250</div>
+                            <div class="text-gray-600">最终得分</div>
+                        </div>
+                        <div class="bg-green-50 p-6 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600 mb-2" id="game-accuracy">95%</div>
+                            <div class="text-gray-600">准确率</div>
+                        </div>
+                        <div class="bg-orange-50 p-6 rounded-lg">
+                            <div class="text-2xl font-bold text-orange-600 mb-2" id="game-time">02:35</div>
+                            <div class="text-gray-600">用时</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button id="play-again-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                            再玩一次
+                        </button>
+                        <button id="try-other-game-btn" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                            尝试其他游戏
+                        </button>
+                        <button id="back-to-games-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                            返回选择
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="mb-6">
+                <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-orange-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <span class="text-white font-bold text-xl">E</span>
+                </div>
+                <h3 class="text-xl font-bold mb-2" style="font-family: 'Noto Serif SC', serif;">初中英语单词复习</h3>
+                <p class="text-gray-400">让英语学习变得更简单、更有趣</p>
+            </div>
+            <div class="border-t border-gray-800 pt-6">
+                <p class="text-gray-400">&copy; 2025 初中英语单词复习平台. 专为中考复习设计.</p>
+            </div>
+        </div>
+    </footer>
+
+
+    <script src="word_data.js"></script>
+    <script src="main.js"></script>
+    <script src="games.js"></script>
+</body>
+</html>

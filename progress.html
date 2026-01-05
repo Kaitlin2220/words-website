@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习进度 - 九年级英语单词复习</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // 1. 用你的【天空蓝】替换系统默认的蓝色 (主按钮/标题)
+                        blue: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#ABD7FB', // 你的颜色 (浅一点)
+                            500: '#ABD7FB', // 你的颜色 (主色)
+                            600: '#F98C53', // 悬停时变珊瑚橘 (增加互动感)
+                        },
+                        // 2. 用你的【珊瑚橘】替换系统默认的橙色 (进度条/强调)
+                        orange: {
+                            500: '#F98C53',
+                        },
+                        // 3. 用你的【抹茶绿】替换系统默认的绿色 (正确/成功)
+                        green: {
+                            100: '#f0fdf4',
+                            500: '#D2E0AA',
+                            600: '#b8d688', // 稍微深一点用于悬停
+                        },
+                        // 4. 用你的【蜜桃粉】替换系统默认的紫色 (游戏/翻牌)
+                        purple: {
+                            200: '#ffe4d6', 
+                            500: '#FCCEB4', 
+                            600: '#F98C53', // 悬停变橘色
+                        },
+                        // 5. 用你的【奶油白】替换系统默认的灰色背景
+                        gray: {
+                            50: '#F9F2EF', // 你的背景色
+                            100: '#F9F2EF',
+                            200: '#eef2f6',
+                            900: '#4a4a4a', // 字体颜色保持深灰，保证阅读清晰
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            /* 使用你的 #F9F2EF (奶油白) 做背景，稍微加一点点渐变让它更有质感 */
+            background: linear-gradient(135deg, #F9F2EF 0%, #fff0e6 100%);
+            min-height: 100vh;
+            color: #4a4a4a; /* 字体深灰色，搭配柔和背景 */
+        }
+        
+        /* 标题文字渐变：使用你的 珊瑚橘 -> 天空蓝 */
+        .gradient-text {
+            background: linear-gradient(135deg, #F98C53, #ABD7FB);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* 修复按钮文字颜色：因为你的主色较浅，按钮文字改成深色会更清晰 */
+        .btn-text-fix {
+            color: #4a4a4a !important; 
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-orange-500 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">E</span>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-900" style="font-family: 'Noto Serif SC', serif;">初中英语单词复习</h1>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="index.html" class="text-gray-600 hover:text-blue-600 transition-colors">单词学习</a>
+                    <a href="practice.html" class="text-gray-600 hover:text-blue-600 transition-colors">练习测试</a>
+                    <a href="games.html" class="text-gray-600 hover:text-blue-600 transition-colors">单词游戏</a>
+                    <a href="progress.html" class="text-blue-600 font-medium border-b-2 border-blue-600 pb-1">学习进度</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-blue-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 移动端菜单 -->
+    <div id="mobile-menu" class="fixed inset-0 z-40 hidden bg-white/95 backdrop-blur-md">
+        <div class="flex flex-col items-center justify-center h-full space-y-8">
+            <a href="index.html" class="text-2xl font-medium text-gray-600">单词学习</a>
+            <a href="practice.html" class="text-2xl font-medium text-gray-600">练习测试</a>
+            <a href="games.html" class="text-2xl font-medium text-gray-600">单词游戏</a>
+            <a href="progress.html" class="text-2xl font-medium text-blue-600">学习进度</a>
+        </div>
+    </div>
+
+    <!-- 主要内容 -->
+    <main class="pt-16">
+        <!-- 标题区域 -->
+        <section class="py-16 bg-gradient-to-r from-green-600 to-blue-600">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 floating-animation" style="font-family: 'Noto Serif SC', serif;">
+                    学习进度统计
+                </h2>
+                <p class="text-xl text-green-100 mb-8 max-w-3xl mx-auto">
+                    详细分析你的学习数据，追踪进步轨迹，发现学习规律，制定个性化学习计划
+                </p>
+            </div>
+        </section>
+
+        <!-- 学习概览 -->
+        <section class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    <div class="stat-card bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-xl text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-3xl font-bold mb-2" id="total-learned-words">42</div>
+                                <div class="text-blue-100">已掌握单词</div>
+                            </div>
+                            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                <span class="text-2xl">📚</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-xl text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-3xl font-bold mb-2" id="study-streak">7</div>
+                                <div class="text-green-100">连续学习天数</div>
+                            </div>
+                            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                <span class="text-2xl">🔥</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card bg-gradient-to-r from-orange-500 to-orange-600 p-6 rounded-xl text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-3xl font-bold mb-2" id="study-time">2.5</div>
+                                <div class="text-orange-100">总学习时长(小时)</div>
+                            </div>
+                            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                <span class="text-2xl">⏱️</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-xl text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-3xl font-bold mb-2" id="accuracy-rate">87%</div>
+                                <div class="text-purple-100">平均正确率</div>
+                            </div>
+                            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                <span class="text-2xl">🎯</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 图表分析 -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h3 class="text-3xl font-bold text-center text-gray-900 mb-12 gradient-text" style="font-family: 'Noto Serif SC', serif;">
+                    学习数据分析
+                </h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                    <!-- 每日学习趋势 -->
+                    <div class="chart-container">
+                        <h4 class="text-xl font-bold text-gray-900 mb-4">每日学习趋势</h4>
+                        <div id="daily-trend-chart" style="height: 300px;"></div>
+                    </div>
+                    
+                    <!-- 单元掌握度 -->
+                    <div class="chart-container">
+                        <h4 class="text-xl font-bold text-gray-900 mb-4">单元掌握度</h4>
+                        <div id="unit-progress-chart" style="height: 300px;"></div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- 单词难度分布 -->
+                    <div class="chart-container">
+                        <h4 class="text-xl font-bold text-gray-900 mb-4">单词难度分布</h4>
+                        <div id="difficulty-chart" style="height: 300px;"></div>
+                    </div>
+                    
+                    <!-- 测试成绩统计 -->
+                    <div class="chart-container">
+                        <h4 class="text-xl font-bold text-gray-900 mb-4">测试成绩统计</h4>
+                        <div id="test-scores-chart" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 单元进度详情 -->
+        <section class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h3 class="text-3xl font-bold text-center text-gray-900 mb-12 gradient-text" style="font-family: 'Noto Serif SC', serif;">
+                    单元学习进度
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="unit-progress-cards">
+                    <!-- 单元进度卡片将通过JavaScript生成 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 成就系统 -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h3 class="text-3xl font-bold text-center text-gray-900 mb-12 gradient-text" style="font-family: 'Noto Serif SC', serif;">
+                    学习成就
+                </h3>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="achievement-badges">
+                    <!-- 成就徽章将通过JavaScript生成 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 错题本 -->
+        <section class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h3 class="text-3xl font-bold text-center text-gray-900 mb-12 gradient-text" style="font-family: 'Noto Serif SC', serif;">
+                    易错单词重点复习
+                </h3>
+                
+                <div class="bg-white p-8 rounded-xl shadow-lg">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="text-xl font-bold text-gray-900">我的错题本</h4>
+                        <button id="review-mistakes-btn" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                            开始复习
+                        </button>
+                    </div>
+                    
+                    <div id="mistake-words-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- 易错单词将通过JavaScript生成 -->
+                    </div>
+                    
+                    <div id="no-mistakes" class="text-center py-12 hidden">
+                        <div class="text-6xl mb-4">🎉</div>
+                        <h4 class="text-xl font-bold text-gray-900 mb-2">太棒了！</h4>
+                        <p class="text-gray-600">您还没有错题，继续保持良好的学习状态！</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 学习建议 -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h3 class="text-3xl font-bold text-center text-gray-900 mb-12 gradient-text" style="font-family: 'Noto Serif SC', serif;">
+                    个性化学习建议
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                            <span class="text-2xl">📊</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-gray-900 mb-2">学习分析</h4>
+                        <p class="text-gray-600 mb-4">根据您的学习数据，您在Unit 3和Unit 6的表现需要加强。</p>
+                        <div class="text-sm text-blue-600 font-medium">建议: 重点复习这两个单元</div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                            <span class="text-2xl">⏰</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-gray-900 mb-2">时间管理</h4>
+                        <p class="text-gray-600 mb-4">您的最佳学习时段是晚上7-9点，建议在这个时间段学习。</p>
+                        <div class="text-sm text-green-600 font-medium">建议: 制定固定学习计划</div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                            <span class="text-2xl">🎯</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-gray-900 mb-2">复习策略</h4>
+                        <p class="text-gray-600 mb-4">遗忘曲线显示，您需要在3天后复习已学单词以加深记忆。</p>
+                        <div class="text-sm text-orange-600 font-medium">建议: 使用间隔重复法</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="mb-6">
+                <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-orange-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <span class="text-white font-bold text-xl">E</span>
+                </div>
+                <h3 class="text-xl font-bold mb-2" style="font-family: 'Noto Serif SC', serif;">初中英语单词复习</h3>
+                <p class="text-gray-400">让英语学习变得更简单、更有趣</p>
+            </div>
+            <div class="border-t border-gray-800 pt-6">
+                <p class="text-gray-400">&copy; 2025 初中英语单词复习平台. 专为中考复习设计.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 学习进度页面的JavaScript代码
+        document.addEventListener('DOMContentLoaded', function() {
+            // 移动端菜单
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            mobileMenu.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+
+            // 初始化图表
+            initializeCharts();
+            
+            // 生成单元进度卡片
+            generateUnitProgressCards();
+            
+            // 生成成就徽章
+            generateAchievementBadges();
+            
+            // 生成易错单词列表
+            generateMistakeWordsList();
+            
+            // 更新统计数据
+            updateProgressStatistics();
+        });
+
+        function initializeCharts() {
+            // 每日学习趋势图
+            const dailyTrendChart = echarts.init(document.getElementById('daily-trend-chart'));
+            const dailyTrendOption = {
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [{
+                    data: [12, 15, 8, 18, 22, 10, 16],
+                    type: 'line',
+                    smooth: true,
+                    itemStyle: {
+                        color: '#3b82f6'
+                    },
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0, color: 'rgba(59, 130, 246, 0.3)'
+                            }, {
+                                offset: 1, color: 'rgba(59, 130, 246, 0.1)'
+                            }]
+                        }
+                    }
+                }]
+            };
+            dailyTrendChart.setOption(dailyTrendOption);
+
+            // 单元掌握度雷达图
+            const unitProgressChart = echarts.init(document.getElementById('unit-progress-chart'));
+            const unitProgressOption = {
+                tooltip: {},
+                radar: {
+                    indicator: [
+                        { name: 'Unit 1', max: 100 },
+                        { name: 'Unit 2', max: 100 },
+                        { name: 'Unit 3', max: 100 },
+                        { name: 'Unit 4', max: 100 },
+                        { name: 'Unit 5', max: 100 },
+                        { name: 'Unit 6', max: 100 }
+                    ]
+                },
+                series: [{
+                    name: '掌握度',
+                    type: 'radar',
+                    data: [{
+                        value: [90, 85, 70, 88, 92, 75],
+                        name: '掌握度',
+                        itemStyle: {
+                            color: '#10b981'
+                        },
+                        areaStyle: {
+                            color: 'rgba(16, 185, 129, 0.2)'
+                        }
+                    }]
+                }]
+            };
+            unitProgressChart.setOption(unitProgressOption);
+
+            // 单词难度分布饼图
+            const difficultyChart = echarts.init(document.getElementById('difficulty-chart'));
+            const difficultyOption = {
+                tooltip: {
+                    trigger: 'item'
+                },
+                series: [{
+                    name: '难度分布',
+                    type: 'pie',
+                    radius: '50%',
+                    data: [
+                        { value: 45, name: '简单', itemStyle: { color: '#10b981' } },
+                        { value: 35, name: '中等', itemStyle: { color: '#f59e0b' } },
+                        { value: 20, name: '困难', itemStyle: { color: '#ef4444' } }
+                    ]
+                }]
+            };
+            difficultyChart.setOption(difficultyOption);
+
+            // 测试成绩统计柱状图
+            const testScoresChart = echarts.init(document.getElementById('test-scores-chart'));
+            const testScoresOption = {
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['英译中', '中译英', '听力测试', '限时挑战']
+                },
+                yAxis: {
+                    type: 'value',
+                    max: 100
+                },
+                series: [{
+                    data: [85, 78, 92, 88],
+                    type: 'bar',
+                    itemStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0, color: '#3b82f6'
+                            }, {
+                                offset: 1, color: '#1d4ed8'
+                            }]
+                        }
+                    }
+                }]
+            };
+            testScoresChart.setOption(testScoresOption);
+        }
+
+        function generateUnitProgressCards() {
+            const container = document.getElementById('unit-progress-cards');
+            const units = [
+                { name: 'Unit 1', progress: 90, words: 25, mastered: 23 },
+                { name: 'Unit 2', progress: 85, words: 20, mastered: 17 },
+                { name: 'Unit 3', progress: 70, words: 20, mastered: 14 },
+                { name: 'Unit 4', progress: 88, words: 20, mastered: 18 },
+                { name: 'Unit 5', progress: 92, words: 20, mastered: 19 },
+                { name: 'Unit 6', progress: 75, words: 20, mastered: 15 },
+                { name: 'Unit 7', progress: 60, words: 20, mastered: 12 },
+                { name: 'Unit 8', progress: 45, words: 20, mastered: 9 }
+            ];
+
+            units.forEach(unit => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all';
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-lg font-bold text-gray-900">${unit.name}</h4>
+                        <span class="text-sm font-medium text-gray-600">${unit.mastered}/${unit.words}</span>
+                    </div>
+                    <div class="mb-4">
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-gradient-to-r from-green-500 to-blue-500 h-3 rounded-full transition-all duration-500" style="width: ${unit.progress}%"></div>
+                        </div>
+                        <div class="text-right mt-2">
+                            <span class="text-sm font-medium text-gray-600">${unit.progress}%</span>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                            继续学习
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function generateAchievementBadges() {
+            const container = document.getElementById('achievement-badges');
+            const achievements = [
+                { name: '初学者', icon: '🌟', unlocked: true, desc: '完成第一个单元' },
+                { name: '坚持者', icon: '🔥', unlocked: true, desc: '连续学习7天' },
+                { name: '记忆大师', icon: '🧠', unlocked: true, desc: '掌握50个单词' },
+                { name: '游戏达人', icon: '🎮', unlocked: false, desc: '完成所有游戏' },
+                { name: '完美主义', icon: '💯', unlocked: true, desc: '测试满分' },
+                { name: '速度之王', icon: '⚡', unlocked: false, desc: '限时挑战优秀' }
+            ];
+
+            achievements.forEach(achievement => {
+                const badge = document.createElement('div');
+                badge.className = `achievement-badge ${achievement.unlocked ? 'unlocked' : 'locked'} p-4 rounded-xl text-center`;
+                badge.innerHTML = `
+                    <div class="text-3xl mb-2">${achievement.icon}</div>
+                    <div class="text-sm font-bold mb-1">${achievement.name}</div>
+                    <div class="text-xs opacity-75">${achievement.desc}</div>
+                `;
+                container.appendChild(badge);
+            });
+        }
+
+        function generateMistakeWordsList() {
+            const container = document.getElementById('mistake-words-list');
+            const mistakes = [
+                { word: 'confirmation', translation: '证实', times: 3, lastWrong: '2025-12-19' },
+                { word: 'embarrassed', translation: '窘迫的；尴尬的', times: 2, lastWrong: '2025-12-18' },
+                { word: 'possessions', translation: '个人财产；私人物品', times: 4, lastWrong: '2025-12-19' },
+                { word: 'sympathy', translation: '同情', times: 1, lastWrong: '2025-12-17' },
+                { word: 'graduation', translation: '毕业典礼', times: 2, lastWrong: '2025-12-18' }
+            ];
+
+            if (mistakes.length === 0) {
+                document.getElementById('no-mistakes').classList.remove('hidden');
+                return;
+            }
+
+            mistakes.forEach(mistake => {
+                const wordCard = document.createElement('div');
+                wordCard.className = 'bg-red-50 p-4 rounded-lg border border-red-200 hover:border-red-300 transition-colors';
+                wordCard.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <h5 class="font-bold text-gray-900">${mistake.word}</h5>
+                        <span class="text-xs bg-red-200 text-red-800 px-2 py-1 rounded-full">${mistake.times}次</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2">${mistake.translation}</p>
+                    <div class="text-xs text-gray-500">最后错误: ${mistake.lastWrong}</div>
+                `;
+                container.appendChild(wordCard);
+            });
+        }
+
+        function updateProgressStatistics() {
+            // 这里可以从localStorage读取实际的学习数据
+            // 现在使用模拟数据
+            document.getElementById('total-learned-words').textContent = '42';
+            document.getElementById('study-streak').textContent = '7';
+            document.getElementById('study-time').textContent = '2.5';
+            document.getElementById('accuracy-rate').textContent = '87%';
+        }
+
+        // 复习错题按钮事件
+        document.getElementById('review-mistakes-btn').addEventListener('click', function() {
+            alert('错题复习功能正在开发中，敬请期待！');
+            // 这里将跳转到错题复习模式
+        });
+    </script>
+</body>
+</html>

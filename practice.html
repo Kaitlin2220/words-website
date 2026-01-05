@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>练习测试 - 初中英语单词复习</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // 1. 用你的【天空蓝】替换系统默认的蓝色 (主按钮/标题)
+                        blue: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#ABD7FB', // 你的颜色 (浅一点)
+                            500: '#ABD7FB', // 你的颜色 (主色)
+                            600: '#F98C53', // 悬停时变珊瑚橘 (增加互动感)
+                        },
+                        // 2. 用你的【珊瑚橘】替换系统默认的橙色 (进度条/强调)
+                        orange: {
+                            500: '#F98C53',
+                        },
+                        // 3. 用你的【抹茶绿】替换系统默认的绿色 (正确/成功)
+                        green: {
+                            100: '#f0fdf4',
+                            500: '#D2E0AA',
+                            600: '#b8d688', // 稍微深一点用于悬停
+                        },
+                        // 4. 用你的【蜜桃粉】替换系统默认的紫色 (游戏/翻牌)
+                        purple: {
+                            200: '#ffe4d6', 
+                            500: '#FCCEB4', 
+                            600: '#F98C53', // 悬停变橘色
+                        },
+                        // 5. 用你的【奶油白】替换系统默认的灰色背景
+                        gray: {
+                            50: '#F9F2EF', // 你的背景色
+                            100: '#F9F2EF',
+                            200: '#eef2f6',
+                            900: '#4a4a4a', // 字体颜色保持深灰，保证阅读清晰
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            /* 使用你的 #F9F2EF (奶油白) 做背景，稍微加一点点渐变让它更有质感 */
+            background: linear-gradient(135deg, #F9F2EF 0%, #fff0e6 100%);
+            min-height: 100vh;
+            color: #4a4a4a; /* 字体深灰色，搭配柔和背景 */
+        }
+        
+        /* 标题文字渐变：使用你的 珊瑚橘 -> 天空蓝 */
+        .gradient-text {
+            background: linear-gradient(135deg, #F98C53, #ABD7FB);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* 修复按钮文字颜色：因为你的主色较浅，按钮文字改成深色会更清晰 */
+        .btn-text-fix {
+            color: #4a4a4a !important; 
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-orange-500 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">E</span>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-900" style="font-family: 'Noto Serif SC', serif;">初中英语单词复习</h1>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="index.html" class="text-gray-600 hover:text-blue-600 transition-colors">单词学习</a>
+                    <a href="practice.html" class="text-blue-600 font-medium border-b-2 border-blue-600 pb-1">练习测试</a>
+                    <a href="games.html" class="text-gray-600 hover:text-blue-600 transition-colors">单词游戏</a>
+                    <a href="progress.html" class="text-gray-600 hover:text-blue-600 transition-colors">学习进度</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-blue-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 移动端菜单 -->
+    <div id="mobile-menu" class="fixed inset-0 z-40 hidden bg-white/95 backdrop-blur-md">
+        <div class="flex flex-col items-center justify-center h-full space-y-8">
+            <a href="index.html" class="text-2xl font-medium text-gray-600">单词学习</a>
+            <a href="practice.html" class="text-2xl font-medium text-blue-600">练习测试</a>
+            <a href="games.html" class="text-2xl font-medium text-gray-600">单词游戏</a>
+            <a href="progress.html" class="text-2xl font-medium text-gray-600">学习进度</a>
+        </div>
+    </div>
+
+    <!-- 主要内容 -->
+    <main class="pt-16">
+        <!-- 标题区域 -->
+        <section class="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 floating-animation" style="font-family: 'Noto Serif SC', serif;">
+                    智能练习测试
+                </h2>
+                <p class="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
+                    通过多种测试模式巩固所学单词，智能分析学习效果，个性化推荐练习内容
+                </p>
+            </div>
+        </section>
+
+        <!-- 测试模式选择 -->
+        <section id="mode-selection" class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h3 class="text-3xl font-bold text-center text-gray-900 mb-12 gradient-text" style="font-family: 'Noto Serif SC', serif;">
+                    选择测试模式
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="quiz-mode-card bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 cursor-pointer border-2 border-transparent hover:border-blue-500" data-mode="en-to-cn">
+                        <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <span class="text-3xl">🇬🇧→🇨🇳</span>
+                        </div>
+                        <h4 class="text-xl font-bold text-gray-900 mb-2 text-center">英译中</h4>
+                        <p class="text-gray-600 text-center">显示英文单词，选择正确的中文释义</p>
+                    </div>
+                    
+                    <div class="quiz-mode-card bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 cursor-pointer border-2 border-transparent hover:border-green-500" data-mode="cn-to-en">
+                        <div class="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <span class="text-3xl">🇨🇳→🇬🇧</span>
+                        </div>
+                        <h4 class="text-xl font-bold text-gray-900 mb-2 text-center">中译英</h4>
+                        <p class="text-gray-600 text-center">显示中文释义，拼写正确的英文单词</p>
+                    </div>
+                    
+                    <div class="quiz-mode-card bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 cursor-pointer border-2 border-transparent hover:border-orange-500" data-mode="listening">
+                        <div class="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <span class="text-3xl">🎧</span>
+                        </div>
+                        <h4 class="text-xl font-bold text-gray-900 mb-2 text-center">听力测试</h4>
+                        <p class="text-gray-600 text-center">播放单词发音，选择正确的拼写</p>
+                    </div>
+                    
+                    <div class="quiz-mode-card bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 cursor-pointer border-2 border-transparent hover:border-purple-500" data-mode="timed">
+                        <div class="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <span class="text-3xl">⏱️</span>
+                        </div>
+                        <h4 class="text-xl font-bold text-gray-900 mb-2 text-center">限时挑战</h4>
+                        <p class="text-gray-600 text-center">60秒内答对尽可能多的题目</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 测试设置 -->
+        <section id="quiz-settings" class="py-16 bg-gray-50 hidden">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white p-8 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">测试设置</h3>
+                    
+                    <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">选择教材</label>
+                    <select id="quiz-book-selector" class="w-full p-3 border-2 border-blue-200 rounded-lg text-gray-700 focus:outline-none focus:border-blue-500 bg-white">
+                        <option value="七年级上册">七年级上册</option>
+                        <option value="七年级下册">七年级下册</option>
+                        <option value="八年级上册">八年级上册</option>
+                        <option value="八年级下册">八年级下册</option>
+                        <option value="九年级上册" selected>九年级上册</option>
+                        <option value="九年级下册">九年级下册</option>
+                    </select>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- 单元选择 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">选择单元</label>
+                            <div class="grid grid-cols-4 gap-2" id="unit-selector">
+                                <!-- 单元选择器将通过JavaScript生成 -->
+                            </div>
+                        </div>
+                        
+                        <!-- 题目数量 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">题目数量</label>
+                            <div class="flex space-x-4">
+                                <button class="quiz-count-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors" data-count="10">10题</button>
+                                <button class="quiz-count-btn bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors" data-count="20">20题</button>
+                                <button class="quiz-count-btn bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors" data-count="30">30题</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 text-center">
+                        <button id="start-quiz-btn" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105">
+                            开始测试
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 测试界面 -->
+        <section id="quiz-interface" class="py-16 bg-white hidden">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- 测试头部 -->
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm font-medium text-gray-600">模式:</span>
+                            <span id="current-mode" class="text-sm font-bold text-blue-600">英译中</span>
+                            <span class="text-sm font-medium text-gray-600">单元:</span>
+                            <span id="current-quiz-unit" class="text-sm font-bold text-green-600">Unit 1</span>
+                        </div>
+                        <button id="pause-quiz-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            暂停
+                        </button>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm font-medium text-gray-600">进度:</span>
+                            <span id="quiz-progress" class="text-sm font-bold text-gray-900">1 / 10</span>
+                        </div>
+                        
+                        <!-- 计时器 -->
+                        <div class="flex items-center space-x-4" id="timer-container">
+                            <span class="text-sm font-medium text-gray-600">时间:</span>
+                            <div class="relative w-12 h-12">
+                                <svg class="w-12 h-12 transform -rotate-90" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="45" stroke="#e5e7eb" stroke-width="8" fill="none"/>
+                                    <circle id="timer-circle" cx="50" cy="50" r="45" stroke="#3b82f6" stroke-width="8" fill="none" class="timer-circle"/>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span id="timer-text" class="text-sm font-bold text-gray-900">30</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm font-medium text-gray-600">得分:</span>
+                            <span id="quiz-score" class="text-sm font-bold text-green-600">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 题目区域 -->
+                <div class="bg-white p-8 rounded-xl shadow-lg mb-8">
+                    <div class="text-center mb-8">
+                        <h3 id="question-text" class="text-3xl font-bold text-gray-900 mb-4">golden</h3>
+                        <p id="question-hint" class="text-lg text-gray-600">请选择正确的中文释义</p>
+                    </div>
+                    
+                    <!-- 选项区域 -->
+                    <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- 选项将通过JavaScript生成 -->
+                    </div>
+                    
+                    <!-- 输入区域（用于中译英模式） -->
+                    <div id="input-container" class="hidden">
+                        <input type="text" id="answer-input" class="w-full p-4 border-2 border-gray-300 rounded-lg text-xl text-center focus:border-blue-500 focus:outline-none" placeholder="请输入英文单词">
+                        <button id="submit-answer-btn" class="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium transition-colors">
+                            提交答案
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 反馈区域 -->
+                <div id="feedback-container" class="hidden bg-white p-6 rounded-xl shadow-lg">
+                    <div class="text-center">
+                        <div id="feedback-icon" class="text-6xl mb-4">🎉</div>
+                        <h4 id="feedback-title" class="text-2xl font-bold mb-2">回答正确！</h4>
+                        <p id="feedback-text" class="text-gray-600 mb-4">golden 的意思是 "金的；金色的"</p>
+                        <button id="next-question-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                            下一题
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 测试结果 -->
+        <section id="quiz-results" class="py-16 bg-gray-50 hidden">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                    <div class="text-6xl mb-6">🎉</div>
+                    <h3 class="text-3xl font-bold text-gray-900 mb-4">测试完成！</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-blue-50 p-6 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600 mb-2" id="final-score">8</div>
+                            <div class="text-gray-600">得分</div>
+                        </div>
+                        <div class="bg-green-50 p-6 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600 mb-2" id="correct-count">8</div>
+                            <div class="text-gray-600">正确</div>
+                        </div>
+                        <div class="bg-red-50 p-6 rounded-lg">
+                            <div class="text-2xl font-bold text-red-600 mb-2" id="incorrect-count">2</div>
+                            <div class="text-gray-600">错误</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
+                            <div id="accuracy-bar" class="bg-gradient-to-r from-green-500 to-blue-500 h-4 rounded-full" style="width: 80%"></div>
+                        </div>
+                        <p class="text-gray-600">准确率: <span id="accuracy-percentage">80%</span></p>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button id="review-mistakes-btn" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                            复习错题
+                        </button>
+                        <button id="retry-quiz-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                            重新测试
+                        </button>
+                        <button id="back-to-mode-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                            返回选择
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 错题复习 -->
+        <section id="mistake-review" class="py-16 bg-white hidden">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h3 class="text-3xl font-bold text-center text-gray-900 mb-8 gradient-text" style="font-family: 'Noto Serif SC', serif;">
+                    错题复习
+                </h3>
+                <div id="mistake-list" class="space-y-4">
+                    <!-- 错题列表将通过JavaScript生成 -->
+                </div>
+                <div class="text-center mt-8">
+                    <button id="finish-review-btn" class="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-medium transition-colors">
+                        完成复习
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="mb-6">
+                <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-orange-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <span class="text-white font-bold text-xl">E</span>
+                </div>
+                <h3 class="text-xl font-bold mb-2" style="font-family: 'Noto Serif SC', serif;">初中英语单词复习</h3>
+                <p class="text-gray-400">让英语学习变得更简单、更有趣</p>
+            </div>
+            <div class="border-t border-gray-800 pt-6">
+                <p class="text-gray-400">&copy; 2025 初中英语单词复习平台. 专为中考复习设计.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="word_data.js"></script> 
+    <script src="main.js"></script>
+    <script src="practice.js"></script>
+</body>
+</html>
